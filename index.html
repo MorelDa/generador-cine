@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Plantillas Premium</title>
+    <style>
+        :root { --primary: #ff4b2b; --secondary: #00c6ff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f0f0f; color: white; padding: 30px; }
+        .container { max-width: 1000px; margin: auto; background: #1a1a1a; padding: 40px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        h1 { text-align: center; background: linear-gradient(to right, #ff416c, #ff4b2b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; margin-bottom: 30px; }
+        label { display: block; margin-bottom: 10px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; }
+        textarea, input { width: 100%; border-radius: 12px; border: 1px solid #333; background: #0a0a0a; color: #eee; padding: 15px; margin-bottom: 20px; box-sizing: border-box; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        button { width: 100%; padding: 18px; border: none; border-radius: 12px; cursor: pointer; font-weight: 800; transition: 0.4s; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
+        .btn-gen { background: white; color: black; margin-bottom: 10px; }
+        .btn-gen:hover { background: var(--primary); color: white; transform: translateY(-3px); }
+        #outputCode { height: 250px; display: none; border: 1px dashed #555; font-family: 'Courier New', Courier, monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎬 Cinema Template Creator Pro</h1>
+    
+    <label>1. Pega la información de la película (Código sucio):</label>
+    <textarea id="inputCode" rows="8" placeholder="Pega aquí el bloque que contiene data-backdrop, títulos, etc..."></textarea>
+
+    <label>2. Pega el Iframe del Video (Código completo del reproductor):</label>
+    <input type="text" id="inputIframe" placeholder='Ej: <iframe src="https://servidor.com/video"></iframe>'>
+
+    <button class="btn-gen" onclick="generateTemplate()">Generar Plantilla Profesional</button>
+    
+    <label>3. Resultado:</label>
+    <textarea id="outputCode" readonly></textarea>
+</div>
+
+<script>
+function generateTemplate() {
+    const raw = document.getElementById('inputCode').value;
+    const iframeRaw = document.getElementById('inputIframe').value;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(raw, 'text/html');
+
+    // EXTRACCIÓN MEJORADA
+    const title = doc.querySelector('li[data]') ? doc.querySelector('li[data]').getAttribute('data') : "Título Película";
+    const poster = doc.querySelector('img') ? doc.querySelector('img').src : "";
+    const backdrop = doc.querySelector('.post-details') ? doc.querySelector('.post-details').getAttribute('data-backdrop') : "";
+    const synopsis = doc.getElementById('tmdb-synopsis') ? doc.getElementById('tmdb-synopsis').innerText : "Sin descripción disponible.";
+    const year = doc.querySelector('li[data-year]') ? doc.querySelector('li[data-year]').getAttribute('data-year') : "";
+    const duration = doc.querySelector('li[data-duartion]') ? doc.querySelector('li[data-duartion]').getAttribute('data-duartion') : "";
+    const genres = doc.querySelector('li[data-genres]') ? doc.querySelector('li[data-genres]').getAttribute('data-genres') : "Cine";
+
+    // Limpieza de Iframe para asegurar que sea responsivo
+    const videoSrc = iframeRaw.match(/src=["']([^"']+)["']/);
+    const finalVideoUrl = videoSrc ? videoSrc[1] : "#";
+
+    const finalHTML = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title} - Ver Online</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #ff4b2b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #050505; color: #fff; line-height: 1.6; }
+        
+        /* Background Layer */
+        .main-hero { 
+            position: relative; min-height: 100vh; width: 100%;
+            display: flex; align-items: center; justify-content: center;
+            background: url('${backdrop}') center/cover no-repeat fixed;
+            padding: 40px 5%;
+        }
+
+        .main-hero::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.95) 100%);
+            z-index: 1;
+        }
+
+        /* Content UI */
+        .content-wrapper {
+            position: relative; z-index: 2; display: flex; gap: 60px;
+            max-width: 1300px; width: 100%; align-items: flex-start;
+            animation: fadeIn 1.2s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .poster-side { flex-shrink: 0; width: 320px; position: sticky; top: 40px; }
+        .poster-img { 
+            width: 100%; border-radius: 16px; box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.5s;
+        }
+        .poster-img:hover { transform: scale(1.03) rotate(-1deg); }
+
+        .info-side { flex-grow: 1; }
+        .movie-title { font-size: clamp(40px, 6vw, 75px); font-weight: 900; line-height: 1.1; margin-bottom: 20px; letter-spacing: -2px; }
+        
+        .meta-strip { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; color: #bbb; font-weight: 500; }
+        .quality-tag { background: #fff; color: #000; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 900; }
+
+        .genre-list { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        .genre-tag { 
+            padding: 8px 20px; border-radius: 100px; background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px); font-size: 14px; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .synopsis { font-size: 18px; color: #ccc; max-width: 700px; margin-bottom: 40px; font-weight: 300; }
+
+        .btn-play {
+            display: inline-flex; align-items: center; gap: 12px;
+            padding: 18px 45px; background: var(--accent); color: white;
+            text-decoration: none; border-radius: 12px; font-weight: 700;
+            font-size: 18px; transition: 0.3s; cursor: pointer;
+            box-shadow: 0 15px 30px rgba(255, 75, 43, 0.3);
+        }
+        .btn-play:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(255, 75, 43, 0.5); }
+
+        /* Player Modal */
+        #player-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            display: none; z-index: 9999; flex-direction: column;
+            padding: 20px;
+        }
+        .close-modal { align-self: flex-end; font-size: 40px; cursor: pointer; padding: 10px; color: #888; }
+        .iframe-container { width: 100%; max-width: 1100px; aspect-ratio: 16/9; margin: auto; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 0 100px rgba(255,75,43,0.2); }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        @media (max-width: 1000px) {
+            .content-wrapper { flex-direction: column; align-items: center; text-align: center; }
+            .meta-strip { justify-content: center; }
+            .genre-list { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<section class="main-hero">
+    <div class="content-wrapper">
+        <div class="poster-side">
+            <img class="poster-img" src="${poster}" alt="Poster">
+        </div>
+        
+        <div class="info-side">
+            <div class="meta-strip">
+                <span class="quality-tag">4K ULTRA HD</span>
+                <span>${year}</span>
+                <span>•</span>
+                <span>${duration}</span>
+            </div>
+            <h1 class="movie-title">${title}</h1>
+            <div class="genre-list">
+                <span class="genre-tag">${genres.split(',').join('</span><span class="genre-tag">')}</span>
+            </div>
+            <p class="synopsis">${synopsis}</p>
+            
+            <div class="btn-play" onclick="togglePlayer(true)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                VER AHORA
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="player-modal">
+    <span class="close-modal" onclick="togglePlayer(false)">&times;</span>
+    <div class="iframe-container">
+        <iframe src="${finalVideoUrl}" allowfullscreen sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
+</div>
+
+<script>
+    function togglePlayer(show) {
+        document.getElementById('player-modal').style.display = show ? 'flex' : 'none';
+        if(!show) {
+            const iframe = document.querySelector('iframe');
+            const src = iframe.src;
+            iframe.src = src; // Detener video al cerrar
+        }
+    }
+    document.addEventListener('contextmenu', e => e.preventDefault());
+<\/script>
+
+</body>
+</html>`;
+
+    const output = document.getElementById('outputCode');
+    output.value = finalHTML;
+    output.style.display = 'block';
+    output.select();
+    alert("¡Código profesional generado!");
+}
+</script>
+</body>
+</html>
